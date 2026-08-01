@@ -1,0 +1,43 @@
+<section class="section" style="padding-bottom:0;">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow"><%- icon('layers') %> Full Service List</span>
+      <h1>Our Services</h1>
+      <p>Pick a service to see pricing, requirements, and to send us your request directly.</p>
+    </div>
+
+    <div class="filter-row">
+      <a href="/services" class="filter-pill <%= !activeCategory ? 'active' : '' %>">All Services</a>
+      <% categories.forEach(function(c){ %>
+        <a href="/services?category=<%= encodeURIComponent(c) %>" class="filter-pill <%= activeCategory === c ? 'active' : '' %>"><%= c %></a>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <% if (services.length === 0) { %>
+      <div class="a-empty" style="background:#fff; border-radius:14px; border:1px solid #E3E9F0;">
+        <p>No services found in this category yet.</p>
+      </div>
+    <% } else { %>
+      <div class="service-grid">
+        <% services.forEach(function(s){ %>
+          <div class="service-card">
+            <span class="badge-category"><%= s.category %></span>
+            <div class="service-icon"><%- icon(s.icon) %></div>
+            <h3><%= s.title %></h3>
+            <p class="desc"><%= s.shortDescription %></p>
+            <div class="service-meta">
+              <span class="service-price"><% if (s.price > 0) { %>Rupee <%= s.price %><% } else { %>Contact us<% } %></span>
+              <span><%- icon('clock') %> <%= s.duration || 'Quick service' %></span>
+            </div>
+            <a href="/services/<%= s.slug %>" class="btn btn-dark btn-block">View Details</a>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+    <%- include('partials/ad-slot') %>
+  </div>
+</section>

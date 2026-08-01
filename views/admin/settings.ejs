@@ -1,0 +1,139 @@
+<form action="/admin/settings?_method=PUT" method="POST">
+  <div class="a-card">
+    <div class="a-card-head"><h3>General</h3></div>
+    <div class="a-form-grid">
+      <div class="a-form-group">
+        <label for="siteName">Site Name</label>
+        <input type="text" id="siteName" name="siteName" value="<%= settings.siteName %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="tagline">Tagline</label>
+        <input type="text" id="tagline" name="tagline" value="<%= settings.tagline %>" />
+      </div>
+    </div>
+  </div>
+
+  <div class="a-card">
+    <div class="a-card-head"><h3>Homepage Hero</h3></div>
+    <div class="a-form-group full">
+      <label for="heroTitle">Hero Title</label>
+      <input type="text" id="heroTitle" name="heroTitle" value="<%= settings.heroTitle %>" />
+    </div>
+    <div class="a-form-group full">
+      <label for="heroSubtitle">Hero Subtitle</label>
+      <textarea id="heroSubtitle" name="heroSubtitle" rows="3"><%= settings.heroSubtitle %></textarea>
+    </div>
+  </div>
+
+  <div class="a-card">
+    <div class="a-card-head"><h3>About Page</h3></div>
+    <div class="a-form-group full">
+      <label for="aboutText">About Text</label>
+      <textarea id="aboutText" name="aboutText" rows="4"><%= settings.aboutText %></textarea>
+    </div>
+  </div>
+
+  <div class="a-card">
+    <div class="a-card-head"><h3>Contact Information</h3></div>
+    <div class="a-form-grid">
+      <div class="a-form-group">
+        <label for="phone">Phone</label>
+        <input type="text" id="phone" name="phone" value="<%= settings.phone %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="whatsapp">WhatsApp</label>
+        <input type="text" id="whatsapp" name="whatsapp" value="<%= settings.whatsapp %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="<%= settings.email %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="openingHours">Opening Hours</label>
+        <input type="text" id="openingHours" name="openingHours" value="<%= settings.openingHours %>" />
+      </div>
+      <div class="a-form-group full">
+        <label for="address">Address</label>
+        <input type="text" id="address" name="address" value="<%= settings.address %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="facebook">Facebook URL</label>
+        <input type="text" id="facebook" name="facebook" value="<%= settings.facebook %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="mapEmbedUrl">Google Map Embed URL</label>
+        <input type="text" id="mapEmbedUrl" name="mapEmbedUrl" value="<%= settings.mapEmbedUrl %>" />
+      </div>
+    </div>
+  </div>
+
+  <div class="a-card">
+    <div class="a-card-head"><h3>SEO (Google Search)</h3></div>
+    <p style="font-size:0.85rem; color:#4C5A70; margin:-6px 0 16px;">
+      These control how your site appears in Google search results and when shared on social media.
+      Fill in <b>Site URL</b> first — everything else (sitemap, canonical links, Open Graph tags) is generated automatically from it.
+    </p>
+    <div class="a-form-grid">
+      <div class="a-form-group full">
+        <label for="siteUrl">Site URL (your live domain, no trailing slash)</label>
+        <input type="text" id="siteUrl" name="siteUrl" placeholder="https://www.hellodigitalcyber.com" value="<%= settings.siteUrl %>" />
+      </div>
+      <div class="a-form-group full">
+        <label for="metaDescription">Meta Description (shown under your title in Google — ~155 characters)</label>
+        <textarea id="metaDescription" name="metaDescription" rows="2" maxlength="160"><%= settings.metaDescription %></textarea>
+      </div>
+      <div class="a-form-group full">
+        <label for="metaKeywords">Meta Keywords (comma separated — include "hello digital cyber", "digital", "cyber", etc.)</label>
+        <textarea id="metaKeywords" name="metaKeywords" rows="2"><%= settings.metaKeywords %></textarea>
+      </div>
+      <div class="a-form-group full">
+        <label for="ogImage">Social Share Image (path or full URL, e.g. /image/logo.png)</label>
+        <input type="text" id="ogImage" name="ogImage" value="<%= settings.ogImage %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="googleSiteVerification">Google Search Console Verification Code</label>
+        <input type="text" id="googleSiteVerification" name="googleSiteVerification" placeholder="paste the 'content' value only" value="<%= settings.googleSiteVerification %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="bingSiteVerification">Bing Webmaster Verification Code</label>
+        <input type="text" id="bingSiteVerification" name="bingSiteVerification" value="<%= settings.bingSiteVerification %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="googleAnalyticsId">Google Analytics Measurement ID (optional)</label>
+        <input type="text" id="googleAnalyticsId" name="googleAnalyticsId" placeholder="G-XXXXXXXXXX" value="<%= settings.googleAnalyticsId %>" />
+      </div>
+    </div>
+    <div style="margin-top:14px; padding:12px 14px; background:#F5F8FC; border-radius:10px; font-size:0.82rem; color:#4C5A70;">
+      After saving your Site URL, submit <code>/sitemap.xml</code> in Google Search Console (Sitemaps tab) so Google fully indexes every page and service — that's what makes the site show up when someone searches "hello digital cyber", "digital service center", etc.
+    </div>
+  </div>
+
+  <div class="a-card">
+    <div class="a-card-head"><h3>Google AdSense</h3></div>
+    <p style="font-size:0.85rem; color:#4C5A70; margin:-6px 0 16px;">
+      Paste your AdSense <b>Publisher ID</b> below once your AdSense account is approved, and ads will start
+      appearing automatically on the homepage, services, and service-detail pages — plus <code>/ads.txt</code>
+      will be generated automatically for you.
+    </p>
+    <div class="a-form-grid">
+      <div class="a-form-group">
+        <label for="googleAdsenseClientId">AdSense Publisher ID</label>
+        <input type="text" id="googleAdsenseClientId" name="googleAdsenseClientId" placeholder="ca-pub-XXXXXXXXXXXXXXXX" value="<%= settings.googleAdsenseClientId %>" />
+      </div>
+      <div class="a-form-group">
+        <label for="googleAdsenseSlotInContent">Ad Unit Slot ID (optional — leave blank to use Auto ads)</label>
+        <input type="text" id="googleAdsenseSlotInContent" name="googleAdsenseSlotInContent" placeholder="1234567890" value="<%= settings.googleAdsenseSlotInContent %>" />
+      </div>
+    </div>
+    <div style="margin-top:14px; padding:12px 14px; background:#FFF8E6; border-radius:10px; font-size:0.82rem; color:#6B5300;">
+      <b>Before ads will actually show:</b> 1) Create a free account at
+      <a href="https://adsense.google.com" target="_blank" rel="noopener">adsense.google.com</a> using this site's URL.
+      2) Google will review the site — it needs enough original content, a working Privacy Policy, and real traffic
+      before it approves you (this can take a few days to a few weeks). 3) Once approved, copy your Publisher ID
+      (starts with <code>ca-pub-</code>) into the field above and save. Ads cannot appear before Google approves the site —
+      this is a Google policy requirement, not a setting on this website.
+    </div>
+  </div>
+
+  <button type="submit" class="a-btn a-btn-primary"><%- icon('check') %> Save Settings</button>
+</form>

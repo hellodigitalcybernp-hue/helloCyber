@@ -1,0 +1,52 @@
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="/" class="brand" style="margin-bottom:14px;">
+          <span class="brand-mark">HD</span>
+          <span style="color:#fff;"><%= (siteSettings && siteSettings.siteName) || 'HelloDigitalCyber' %></span>
+        </a>
+        <p style="font-size:0.9rem; max-width:280px; color:rgba(255,255,255,0.6);">
+          <%= (siteSettings && siteSettings.tagline) || 'Your Trusted Digital Service Point' %>
+        </p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/services">Services</a></li>
+          <li><a href="/about">About Us</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Popular Services</h4>
+        <ul>
+          <li><a href="/services/cv-resume-writing">CV / Resume Writing</a></li>
+          <li><a href="/services/nid-correction-form">NID Form Fill-up</a></li>
+          <li><a href="/services/ward-union-document">Ward Document Support</a></li>
+          <li><a href="/services/passport-form-fillup">Passport Form Fill-up</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><%= (siteSettings && siteSettings.phone) || '+880 1XXX-XXXXXX' %></li>
+          <li><%= (siteSettings && siteSettings.email) || 'info@hellodigitalcyber.com' %></li>
+          <li><%= (siteSettings && siteSettings.address) || 'Shop 4, Main Bazar Road' %></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; <%= new Date().getFullYear() %> <%= (siteSettings && siteSettings.siteName) || 'HelloDigitalCyber' %>. All rights reserved.</span>
+      <span><a href="/privacy-policy" style="color:rgba(255,255,255,0.5);">Privacy Policy</a> &middot; <a href="/admin/login" style="color:rgba(255,255,255,0.5);">Admin Login</a></span>
+    </div>
+  </div>
+</footer>
+<script>
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  if (navToggle) {
+    navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+  }
+</script>

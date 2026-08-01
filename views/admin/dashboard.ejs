@@ -1,0 +1,74 @@
+<div class="a-stats-grid">
+  <div class="a-stat-card">
+    <div class="label">Total Services</div>
+    <div class="value"><%= stats.totalServices %></div>
+  </div>
+  <div class="a-stat-card">
+    <div class="label">Active Services</div>
+    <div class="value teal"><%= stats.activeServices %></div>
+  </div>
+  <div class="a-stat-card">
+    <div class="label">Total Requests</div>
+    <div class="value"><%= stats.totalMessages %></div>
+  </div>
+  <div class="a-stat-card">
+    <div class="label">New Requests</div>
+    <div class="value accent"><%= stats.newMessages %></div>
+  </div>
+</div>
+
+<div class="a-card">
+  <div class="a-card-head">
+    <h3>Recent Requests</h3>
+    <a href="/admin/messages" class="a-view-all">View all</a>
+  </div>
+  <div class="a-table-wrap">
+    <table class="a-table">
+      <thead>
+        <tr><th>Name</th><th>Phone</th><th>Service</th><th>Status</th><th>Received</th></tr>
+      </thead>
+      <tbody>
+        <% if (recentMessages.length === 0) { %>
+          <tr><td colspan="5" class="a-empty">No requests yet.</td></tr>
+        <% } %>
+        <% recentMessages.forEach(function(m){ %>
+          <tr>
+            <td><%= m.name %></td>
+            <td><%= m.phone %></td>
+            <td><%= m.service %></td>
+            <td><span class="pill pill-<%= m.status %>"><%= m.status.replace('_',' ') %></span></td>
+            <td><%= new Date(m.createdAt).toLocaleDateString() %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="a-card">
+  <div class="a-card-head">
+    <h3>Recently Added Services</h3>
+    <a href="/admin/services" class="a-view-all">View all</a>
+  </div>
+  <div class="a-table-wrap">
+    <table class="a-table">
+      <thead>
+        <tr><th>Title</th><th>Category</th><th>Price</th><th>Status</th><th>Added</th></tr>
+      </thead>
+      <tbody>
+        <% if (recentServices.length === 0) { %>
+          <tr><td colspan="5" class="a-empty">No services yet. <a href="/admin/services/new">Add your first service</a>.</td></tr>
+        <% } %>
+        <% recentServices.forEach(function(s){ %>
+          <tr>
+            <td><%= s.title %></td>
+            <td><%= s.category %></td>
+            <td><% if (s.price > 0) { %>Rupee <%= s.price %><% } else { %>—<% } %></td>
+            <td><span class="pill pill-<%= s.active ? 'active' : 'inactive' %>"><%= s.active ? 'Active' : 'Inactive' %></span></td>
+            <td><%= new Date(s.createdAt).toLocaleDateString() %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<%# Reusable Google AdSense ad slot. Include with: include('partials/ad-slot')
+    Nothing renders (and no ad space is reserved) until you set a Google AdSense
+    Client ID in Admin > Settings > Google AdSense. If you also set a specific
+    ad unit "slot" id there, that manual unit is used; otherwise this falls back
+    to a responsive display unit driven by Auto ads. %>
+<% if (siteSettings && siteSettings.googleAdsenseClientId) { %>
+  <div class="ad-slot" style="margin:32px 0; text-align:center;">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="<%= siteSettings.googleAdsenseClientId %>"
+         <% if (siteSettings.googleAdsenseSlotInContent) { %>data-ad-slot="<%= siteSettings.googleAdsenseSlotInContent %>"<% } %>
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+<% } %>

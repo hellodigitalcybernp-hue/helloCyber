@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? title : ((siteSettings && siteSettings.siteName) || 'HelloDigitalCyber') %></title>
+
+  <%
+    // ---- SEO helper values (page-level overrides fall back to global site settings) ----
+    const ss = (typeof siteSettings !== 'undefined' && siteSettings) ? siteSettings : {};
+    const pageDescription = (typeof metaDescription !== 'undefined' && metaDescription) || ss.metaDescription || 'HelloDigitalCyber — CV writing, NID form fill-up, ward document support, passport applications and digital services.';
+    const pageKeywords = (typeof metaKeywords !== 'undefined' && metaKeywords) || ss.metaKeywords || 'hello digital cyber, hellodigitalcyber, digital service center, CV writing, NID form fill up, ward document, passport form fill up';
+    const siteUrl = (ss.siteUrl || '').replace(/\/$/, '');
+    const canonicalUrl = siteUrl ? (siteUrl + currentPath) : '';
+    const ogImageUrl = (typeof ogImage !== 'undefined' && ogImage) ? ogImage : (ss.ogImage || '/image/logo.png');
+    const ogImageAbs = ogImageUrl.startsWith('http') ? ogImageUrl : (siteUrl + ogImageUrl);
+    const pageTitle = typeof title !== 'undefined' ? title : ((ss && ss.siteName) || 'HelloDigitalCyber');
+  %>
+
+  <meta name="description" content="<%= pageDescription %>" />
+  <meta name="keywords" content="<%= pageKeywords %>" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="<%= (ss && ss.siteName) || 'HelloDigitalCyber' %>" />
+  <% if (canonicalUrl) { %><link rel="canonical" href="<%= canonicalUrl %>" /><% } %>
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="<%= (ss && ss.siteName) || 'HelloDigitalCyber' %>" />
+  <meta property="og:title" content="<%= pageTitle %>" />
+  <meta property="og:description" content="<%= pageDescription %>" />
+  <% if (canonicalUrl) { %><meta property="og:url" content="<%= canonicalUrl %>" /><% } %>
+  <meta property="og:image" content="<%= ogImageAbs %>" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="<%= pageTitle %>" />
+  <meta name="twitter:description" content="<%= pageDescription %>" />
+  <meta name="twitter:image" content="<%= ogImageAbs %>" />
+
+  <!-- Search engine ownership verification (filled in from Admin > Settings once you have the codes) -->
+  <% if (ss.googleSiteVerification) { %><meta name="google-site-verification" content="<%= ss.googleSiteVerification %>" /><% } %>
+  <% if (ss.bingSiteVerification) { %><meta name="msvalidate.01" content="<%= ss.bingSiteVerification %>" /><% } %>
+
+  <link rel="icon" type="image/x-icon" href="/image/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/image/logo.png">
+  <link rel="apple-touch-icon" href="/image/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/style.css" />
+
+  <!-- Local Business structured data (helps Google show rich results for "hello digital cyber", "digital service near me", etc.) -->
+  <script type="application/ld+json"><%- JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": (ss && ss.siteName) || "HelloDigitalCyber",
+    "description": pageDescription,
+    "url": siteUrl || undefined,
+    "image": ogImageAbs,
+    "telephone": (ss && ss.phone) || "",
+    "email": (ss && ss.email) || "",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": (ss && ss.address) || ""
+    }
+  }) %></script>
+
+  <!-- Google AdSense -->
+  <% if (ss.googleAdsenseClientId) { %>
+  <meta name="google-adsense-account" content="<%= ss.googleAdsenseClientId %>">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%= ss.googleAdsenseClientId %>" crossorigin="anonymous"></script>
+  <% } %>
+
+  <!-- Google Analytics (optional, only loads once you add a Measurement ID in Admin > Settings) -->
+  <% if (ss.googleAnalyticsId) { %>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=<%= ss.googleAnalyticsId %>"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '<%= ss.googleAnalyticsId %>');
+  </script>
+  <% } %>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <% if (success && success.length) { %>
+    <div class="container" style="margin-top:20px;">
+      <% success.forEach(function(m){ %><div class="alert alert-success"><%= m %></div><% }) %>
+    </div>
+  <% } %>
+  <% if (error && error.length) { %>
+    <div class="container" style="margin-top:20px;">
+      <% error.forEach(function(m){ %><div class="alert alert-error"><%= m %></div><% }) %>
+    </div>
+  <% } %>
+
+  <%- body %>
+
+  <%- include('partials/footer') %>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

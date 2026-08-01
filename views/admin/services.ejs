@@ -1,0 +1,56 @@
+<div class="a-card">
+  <div class="a-card-head">
+    <h3>All Services (<%= services.length %>)</h3>
+    <a href="/admin/services/new" class="a-btn a-btn-accent"><%- icon('plus') %> Add Service</a>
+  </div>
+  <div class="a-table-wrap">
+    <table class="a-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Duration</th>
+          <th>Featured</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (services.length === 0) { %>
+          <tr><td colspan="7" class="a-empty">No services yet. <a href="/admin/services/new">Add your first service</a>.</td></tr>
+        <% } %>
+        <% services.forEach(function(s){ %>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <% if (s.image) { %>
+                  <img src="<%= s.image %>" class="a-thumb" alt="" />
+                <% } else { %>
+                  <div class="a-thumb" style="display:flex; align-items:center; justify-content:center; color:#6B7385;"><%- icon(s.icon) %></div>
+                <% } %>
+                <div>
+                  <div style="font-weight:600;"><%= s.title %></div>
+                  <div style="font-size:0.78rem; color:#6B7385;">/services/<%= s.slug %></div>
+                </div>
+              </div>
+            </td>
+            <td><%= s.category %></td>
+            <td><% if (s.price > 0) { %>Rupee <%= s.price %><% } else { %>—<% } %></td>
+            <td><%= s.duration || '—' %></td>
+            <td><%= s.featured ? 'Yes' : 'No' %></td>
+            <td><span class="pill pill-<%= s.active ? 'active' : 'inactive' %>"><%= s.active ? 'Active' : 'Inactive' %></span></td>
+            <td>
+              <div class="a-row-actions">
+                <a href="/admin/services/<%= s._id %>/edit" class="a-btn a-btn-ghost a-btn-sm"><%- icon('edit') %> Edit</a>
+                <form action="/admin/services/<%= s._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Delete this service? This cannot be undone.');">
+                  <button type="submit" class="a-btn a-btn-danger a-btn-sm"><%- icon('trash') %> Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>

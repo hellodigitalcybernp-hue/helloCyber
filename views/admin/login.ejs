@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login - HelloDigitalCyber</title>
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+  <div class="a-login-wrap">
+    <div class="a-login-card">
+      <div class="a-login-brand">
+        <span class="a-brand-mark" style="color:#14213D;"></span>
+         <img src="/image/logo.png" alt="HelloDigitalCyber Logo" class="a-logo">
+         <span>HelloDigitalCyber</span>
+      </div>
+
+      <% if (typeof success !== 'undefined' && success.length) { %>
+        <% success.forEach(function(m){ %><div class="a-alert a-alert-success"><%= m %></div><% }) %>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error.length) { %>
+        <% error.forEach(function(m){ %><div class="a-alert a-alert-error"><%= m %></div><% }) %>
+      <% } %>
+
+      <form action="/admin/login" method="POST">
+        <div class="a-form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autofocus />
+        </div>
+        <div class="a-form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+        <button type="submit" class="a-btn a-btn-primary" style="width:100%; justify-content:center; padding:12px;">Log In</button>
+      </form>
+      <p style="font-size:0.8rem; color:#6B7385; margin-top:20px; text-align:center;">
+        Run <code>npm run seed</code> to create the default admin account.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

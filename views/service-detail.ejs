@@ -1,0 +1,103 @@
+<script type="application/ld+json"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": service.title,
+  "description": service.shortDescription || "",
+  "provider": {
+    "@type": "LocalBusiness",
+    "name": (siteSettings && siteSettings.siteName) || "HelloDigitalCyber"
+  },
+  "areaServed": (siteSettings && siteSettings.address) || "",
+  "category": service.category
+}) %></script>
+<script type="application/ld+json"><%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Services", "item": ((siteSettings && siteSettings.siteUrl) || "").replace(/\/$/, "") + "/services" },
+    { "@type": "ListItem", "position": 2, "name": service.title }
+  ]
+}) %></script>
+
+<section class="section">
+  <div class="container">
+    <div class="breadcrumb"><a href="/services">Services</a> / <%= service.title %></div>
+
+    <div class="detail-grid">
+      <div>
+        <div class="detail-header">
+          <div class="service-icon" style="width:56px;height:56px;"><%- icon(service.icon) %></div>
+          <div>
+            <span class="badge-category" style="position:static; display:inline-block; margin-bottom:6px;"><%= service.category %></span>
+            <h1 style="font-size:1.8rem; margin:0;"><%= service.title %></h1>
+          </div>
+        </div>
+
+        <% if (service.image) { %>
+          <img src="<%= service.image %>" alt="<%= service.title %>" style="width:100%; border-radius:14px; margin-bottom:24px; max-height:320px; object-fit:cover;" />
+        <% } %>
+
+        <p style="color:#4C5A70; font-size:1.02rem; margin-bottom:28px;">
+          <%= service.fullDescription || service.shortDescription %>
+        </p>
+
+        <% if (service.requirements && service.requirements.length) { %>
+          <h3 style="font-size:1.1rem;">What you'll need to bring</h3>
+          <ul class="req-list" style="margin-bottom:28px;">
+            <% service.requirements.forEach(function(r){ %>
+              <li><%- icon('check') %> <%= r %></li>
+            <% }) %>
+          </ul>
+        <% } %>
+
+        <% if (related && related.length) { %>
+          <h3 style="font-size:1.1rem;">Related services</h3>
+          <div class="service-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px,1fr));">
+            <% related.forEach(function(r){ %>
+              <a href="/services/<%= r.slug %>" class="service-card" style="text-decoration:none;">
+                <div class="service-icon"><%- icon(r.icon) %></div>
+                <h3 style="font-size:1rem;"><%= r.title %></h3>
+                <p class="desc"><%= r.shortDescription %></p>
+              </a>
+            <% }) %>
+          </div>
+        <% } %>
+
+        <%- include('partials/ad-slot') %>
+      </div>
+
+      <div>
+        <div class="form-card" style="position:sticky; top:90px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+            <span class="price-tag"><% if (service.price > 0) { %>Rupee <%= service.price %><% } else { %>Contact us<% } %></span>
+            <span class="price-note"><%= service.priceNote %></span>
+          </div>
+          <p style="font-size:0.85rem; color:#4C5A70; margin-top:0; margin-bottom:20px;">
+            <%- icon('clock') %> Estimated time: <b><%= service.duration || 'On request' %></b>
+          </p>
+
+          <h3 style="font-size:1.05rem;">Request this service</h3>
+          <form action="/services/<%= service.slug %>/apply" method="POST">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" placeholder="Your full name" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" placeholder="e.g. 01XXXXXXXXX" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email (optional)</label>
+              <input type="email" id="email" name="email" placeholder="you@example.com" />
+            </div>
+            <div class="form-group">
+              <label for="note">Additional Notes</label>
+              <textarea id="note" name="note" rows="3" placeholder="Tell us anything specific about your request"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Send Request</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

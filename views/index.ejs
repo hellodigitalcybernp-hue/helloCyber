@@ -1,0 +1,95 @@
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="eyebrow"><%- icon('shield') %> Verified &amp; Reliable Service Center</span>
+      <h1><%= settings.heroTitle %></h1>
+      <p class="lead"><%= settings.heroSubtitle %></p>
+      <div class="hero-actions">
+        <a href="/services" class="btn btn-primary">Browse All Services</a>
+        <a href="/contact" class="btn btn-outline">Talk to Us</a>
+      </div>
+     
+    </div>
+    <div>
+      <div class="ticket-card">
+        <div class="ticket-head">
+          <span class="ticket-code">TOKEN #HD-2026</span>
+          <span class="ticket-status">Ready for pickup</span>
+        </div>
+        <div class="ticket-row"><span>Service</span><b>Passport Form Fill-up</b></div>
+        <div class="ticket-row"><span>Requested by</span><b>Walk-in Customer</b></div>
+        <div class="ticket-row"><span>Duration</span><b>Same day</b></div>
+        <div class="ticket-row"><span>Status</span><b style="color:#10805C;">Completed</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section bg-alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow"><%- icon('layers') %> What We Handle</span>
+      <h2>One counter for all your paperwork</h2>
+      <p>From a polished CV to government form fill-ups, we take the confusion out of documents so you don't have to.</p>
+    </div>
+    <div class="service-grid">
+      <% services.forEach(function(s){ %>
+        <div class="service-card">
+          <span class="badge-category"><%= s.category %></span>
+          <div class="service-icon"><%- icon(s.icon) %></div>
+          <h3><%= s.title %></h3>
+          <p class="desc"><%= s.shortDescription %></p>
+          <div class="service-meta">
+            <span class="service-price"><% if (s.price > 0) { %>Rupee <%= s.price %><% } else { %>Contact us<% } %></span>
+            <span><%- icon('clock') %> <%= s.duration || 'Quick service' %></span>
+          </div>
+          <a href="/services/<%= s.slug %>" class="btn btn-dark btn-block">View Details</a>
+        </div>
+      <% }) %>
+    </div>
+    <div style="text-align:center; margin-top:40px;">
+      <a href="/services" class="btn btn-outline" style="color:#0B2545; border-color:#0B2545;">See All Services</a>
+    </div>
+  </div>
+</section>
+
+<div class="container"><%- include('partials/ad-slot') %></div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow"><%- icon('check-circle') %> Simple Process</span>
+      <h2>How it works</h2>
+      <p>Three steps between you and a finished, error-free document.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Tell us what you need</h3>
+        <p>Visit us or send your details online — we'll tell you exactly which documents are required.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>We prepare it correctly</h3>
+        <p>Our team fills, checks and formats your form or document so it's accepted the first time.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Collect &amp; submit</h3>
+        <p>Pick up your finished document or receive it digitally, ready to submit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section bg-alt">
+  <div class="container">
+    <div class="cta-band">
+      <div>
+        <h2>Not sure which service you need?</h2>
+        <p>Message us your situation — we'll point you in the right direction, free of charge.</p>
+      </div>
+      <a href="/contact" class="btn btn-primary">Contact Our Team</a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,51 @@
+<div class="a-card">
+  <div class="a-card-head">
+    <h3>All Requests (<%= messages.length %>)</h3>
+  </div>
+  <div class="a-table-wrap">
+    <table class="a-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Service</th>
+          <th>Note</th>
+          <th>Status</th>
+          <th>Received</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (messages.length === 0) { %>
+          <tr><td colspan="8" class="a-empty">No requests yet.</td></tr>
+        <% } %>
+        <% messages.forEach(function(m){ %>
+          <tr>
+            <td><%= m.name %></td>
+            <td><%= m.phone %></td>
+            <td><%= m.email || '—' %></td>
+            <td><%= m.service %></td>
+            <td style="max-width:200px; white-space:normal;"><%= m.note || '—' %></td>
+            <td>
+              <form action="/admin/messages/<%= m._id %>/status?_method=PUT" method="POST">
+                <select name="status" onchange="this.form.submit()" class="pill pill-<%= m.status %>" style="border:none; cursor:pointer;">
+                  <option value="new" <%= m.status === 'new' ? 'selected' : '' %>>New</option>
+                  <option value="in_progress" <%= m.status === 'in_progress' ? 'selected' : '' %>>In Progress</option>
+                  <option value="completed" <%= m.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                  <option value="cancelled" <%= m.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                </select>
+              </form>
+            </td>
+            <td><%= new Date(m.createdAt).toLocaleString() %></td>
+            <td>
+              <form action="/admin/messages/<%= m._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Delete this message?');">
+                <button type="submit" class="a-btn a-btn-danger a-btn-sm"><%- icon('trash') %></button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
