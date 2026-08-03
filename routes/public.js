@@ -177,4 +177,5 @@ router.get("/ads.txt", async (req, res) => {
   res.type("text/plain").send(`google.com, ${pubId}, DIRECT, f08c47fec0942fa0`);
 });
 
+
 module.exports = router;
