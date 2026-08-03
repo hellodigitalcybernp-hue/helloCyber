@@ -1,0 +1,239 @@
+<!-- Floating chat widget: lets a visitor and the admin message each other. -->
+<div id="chatw-root">
+  <button id="chatw-toggle" type="button" aria-label="Open chat">
+    <span class="chatw-toggle-icon">💬</span>
+    <span id="chatw-badge" class="chatw-badge" style="display:none;"></span>
+  </button>
+
+  <div id="chatw-panel" class="chatw-panel" style="display:none;">
+    <div class="chatw-head">
+      <div>
+        <div class="chatw-title">Chat with us</div>
+        <div class="chatw-subtitle">We usually reply within a few minutes</div>
+      </div>
+      <button id="chatw-close" type="button" aria-label="Close chat">&times;</button>
+    </div>
+
+    <!-- Shown once, before the visitor sends their first message -->
+    <div id="chatw-intro" class="chatw-intro">
+      <div class="chatw-field">
+        <label for="chatw-name">Your name</label>
+        <input id="chatw-name" type="text" placeholder="e.g. John Doe" />
+      </div>
+      <div class="chatw-field">
+        <label for="chatw-phone">Phone (optional)</label>
+        <input id="chatw-phone" type="tel" placeholder="e.g. 98xxxxxxx" />
+      </div>
+      <button id="chatw-start" type="button" class="chatw-start-btn">Start chat</button>
+    </div>
+
+    <div id="chatw-messages" class="chatw-messages" style="display:none;"></div>
+
+    <form id="chatw-form" class="chatw-form" style="display:none;">
+      <input id="chatw-input" type="text" placeholder="Type a message..." autocomplete="off" />
+      <button type="submit" aria-label="Send">➤</button>
+    </form>
+  </div>
+</div>
+
+<style>
+  #chatw-root { position: fixed; right: 20px; bottom: 20px; z-index: 9999; font-family: inherit; }
+
+  #chatw-toggle {
+    width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
+    background: #0d9488; color: #fff; font-size: 1.5rem; box-shadow: 0 6px 18px rgba(13,148,136,0.35);
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .chatw-badge {
+    position: absolute; top: -4px; right: -4px; background: #e11d48; color: #fff;
+    font-size: 0.7rem; font-weight: 600; min-width: 18px; height: 18px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; padding: 0 4px;
+  }
+
+  .chatw-panel {
+    position: absolute; bottom: 72px; right: 0; width: 320px; max-height: 460px;
+    background: #fff; border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+    display: flex; flex-direction: column; overflow: hidden; border: 1px solid #E5E9F0;
+  }
+
+  .chatw-head {
+    background: #0d9488; color: #fff; padding: 14px 16px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .chatw-title { font-weight: 600; font-size: 0.98rem; }
+  .chatw-subtitle { font-size: 0.78rem; opacity: 0.85; margin-top: 2px; }
+  #chatw-close { background: none; border: none; color: #fff; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+
+  .chatw-intro { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .chatw-field label { display: block; font-size: 0.8rem; color: #4C5A70; margin-bottom: 4px; }
+  .chatw-field input {
+    width: 100%; padding: 8px 10px; border: 1px solid #D8DEE8; border-radius: 8px; font-size: 0.9rem;
+  }
+  .chatw-start-btn {
+    background: #0d9488; color: #fff; border: none; border-radius: 8px; padding: 9px;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-top: 4px;
+  }
+
+  .chatw-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-height: 220px; }
+  .chatw-msg { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 0.87rem; line-height: 1.35; }
+  .chatw-msg-visitor { align-self: flex-end; background: #0d9488; color: #fff; border-bottom-right-radius: 3px; }
+  .chatw-msg-admin { align-self: flex-start; background: #F1F4F8; color: #2b3648; border-bottom-left-radius: 3px; }
+  .chatw-empty { color: #8592a6; font-size: 0.85rem; text-align: center; margin-top: 20px; }
+
+  .chatw-form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #EEF1F6; }
+  .chatw-form input {
+    flex: 1; padding: 9px 12px; border: 1px solid #D8DEE8; border-radius: 20px; font-size: 0.88rem; outline: none;
+  }
+  .chatw-form button {
+    width: 38px; height: 38px; border-radius: 50%; border: none; background: #0d9488;
+    color: #fff; cursor: pointer; font-size: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    .chatw-panel { width: calc(100vw - 32px); right: -4px; }
+  }
+</style>
+
+<script>
+(function () {
+  const POLL_MS = 4000;
+  const LS_VISITOR_ID = 'chatw_visitor_id';
+  const LS_CONV_ID = 'chatw_conversation_id';
+
+  const root = document.getElementById('chatw-root');
+  const toggleBtn = document.getElementById('chatw-toggle');
+  const closeBtn = document.getElementById('chatw-close');
+  const panel = document.getElementById('chatw-panel');
+  const badge = document.getElementById('chatw-badge');
+  const intro = document.getElementById('chatw-intro');
+  const nameInput = document.getElementById('chatw-name');
+  const phoneInput = document.getElementById('chatw-phone');
+  const startBtn = document.getElementById('chatw-start');
+  const messagesEl = document.getElementById('chatw-messages');
+  const form = document.getElementById('chatw-form');
+  const input = document.getElementById('chatw-input');
+
+  let visitorId = localStorage.getItem(LS_VISITOR_ID) || '';
+  let conversationId = localStorage.getItem(LS_CONV_ID) || '';
+  let lastMessageAt = null;
+  let pollTimer = null;
+  let unread = 0;
+
+  function openPanel() {
+    panel.style.display = 'flex';
+    unread = 0;
+    updateBadge();
+    if (conversationId) startPolling();
+  }
+  function closePanel() {
+    panel.style.display = 'none';
+  }
+  toggleBtn.addEventListener('click', () => {
+    panel.style.display === 'none' ? openPanel() : closePanel();
+  });
+  closeBtn.addEventListener('click', closePanel);
+
+  function updateBadge() {
+    if (unread > 0) {
+      badge.style.display = 'flex';
+      badge.textContent = unread > 9 ? '9+' : String(unread);
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function renderMessage(m) {
+    const div = document.createElement('div');
+    div.className = 'chatw-msg ' + (m.sender === 'visitor' ? 'chatw-msg-visitor' : 'chatw-msg-admin');
+    div.textContent = m.text;
+    messagesEl.appendChild(div);
+    lastMessageAt = m.createdAt;
+  }
+
+  function scrollToBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function showChatUI() {
+    intro.style.display = 'none';
+    messagesEl.style.display = 'flex';
+    form.style.display = 'flex';
+  }
+
+  async function startConversation() {
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+
+    const res = await fetch('/chat/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitorId, name, phone }),
+    });
+    const data = await res.json();
+    if (!data.ok) return;
+
+    visitorId = data.visitorId;
+    conversationId = data.conversationId;
+    localStorage.setItem(LS_VISITOR_ID, visitorId);
+    localStorage.setItem(LS_CONV_ID, conversationId);
+
+    showChatUI();
+    startPolling();
+  }
+  startBtn.addEventListener('click', startConversation);
+
+  async function sendMessage(text) {
+    if (!conversationId) return;
+    const res = await fetch('/chat/' + conversationId + '/message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, visitorId }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      renderMessage(data.message);
+      scrollToBottom();
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    sendMessage(text);
+  });
+
+  async function poll() {
+    if (!conversationId) return;
+    const url = '/chat/' + conversationId + '/messages'
+      + '?visitorId=' + encodeURIComponent(visitorId)
+      + (lastMessageAt ? '&after=' + encodeURIComponent(lastMessageAt) : '');
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.ok && data.messages.length) {
+        data.messages.forEach((m) => {
+          renderMessage(m);
+          if (m.sender === 'admin' && panel.style.display === 'none') unread++;
+        });
+        scrollToBottom();
+        updateBadge();
+      }
+    } catch (err) {
+      // silent fail, retry on next tick
+    }
+  }
+
+  function startPolling() {
+    if (pollTimer) return;
+    poll();
+    pollTimer = setInterval(poll, POLL_MS);
+  }
+
+  // Resume an existing conversation on page load
+  if (visitorId && conversationId) {
+    showChatUI();
+  }
+})();
+</script>

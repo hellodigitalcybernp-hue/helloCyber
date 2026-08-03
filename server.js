@@ -6,6 +6,7 @@ const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
 const methodOverride = require("method-override");
 const expressLayouts = require("express-ejs-layouts");
+const chatRouter = require("./routes/chat");
 
 const connectDB = require("./config/db");
 const Setting = require("./models/Setting");
@@ -70,6 +71,7 @@ app.use("/admin", (req, res, next) => {
   next();
 }, adminRoutes);
 
+app.use(chatRouter);
 app.use("/", publicRoutes);
 
 // 404
@@ -86,5 +88,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`HelloDigitalCyber server running at http://localhost:${PORT}`);
   console.log(`HelloDigitalCyber server running at http://localhost:${PORT}/admin/dashboard`);
-console.log(`HelloDigitalCyber server running at http://localhost:${PORT}/admin/login`);
+  console.log(`HelloDigitalCyber server running at http://localhost:${PORT}/admin/login`);
 });

@@ -14,7 +14,7 @@
     <aside class="a-sidebar" id="aSidebar">
       <div>
         <div class="a-brand">
-  <img src="/image/logo.png" alt="HelloDigitalCyber Logo" class="a-logo">
+  <img src="/image/hellocyber.png" alt="HelloDigitalCyber Logo" class="a-logo">
   <span>HelloDigitalCyber</span>
 </div>
         <div class="a-nav-label">General</div>
@@ -22,6 +22,7 @@
         <div class="a-nav-label">Manage</div>
         <a href="/admin/services" class="a-nav-item <%= currentPath.startsWith('/admin/services') ? 'active' : '' %>"><%- icon('layers') %> Services</a>
         <a href="/admin/messages" class="a-nav-item <%= currentPath.startsWith('/admin/messages') ? 'active' : '' %>"><%- icon('inbox') %> Requests &amp; Messages</a>
+<a href="/admin/chat" class="a-nav-item <%= currentPath.startsWith('/admin/chat') ? 'active' : '' %>"><%- icon('message') %> Live Chat</a>
         <div class="a-nav-label">Site</div>
         <a href="/admin/settings" class="a-nav-item <%= currentPath.startsWith('/admin/settings') ? 'active' : '' %>"><%- icon('settings') %> Site Settings</a>
         <a href="/admin/account" class="a-nav-item <%= currentPath.startsWith('/admin/account') ? 'active' : '' %>"><%- icon('users') %> My Account</a>

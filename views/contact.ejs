@@ -1,3 +1,79 @@
+<!--section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow"><%- icon('message') %> Get In Touch</span>
+      <h1>Contact Us</h1>
+      <p>Have a question before requesting a service? Send us a message or reach out directly.</p>
+    </div>
+
+    <div class="detail-grid">
+      <div class="form-card">
+        <h3 style="font-size:1.1rem;">Send a message</h3>
+        <form action="/contact" method="POST">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="email">Email (optional)</label>
+            <input type="email" id="email" name="email" />
+          </div>
+          <div class="form-group">
+            <label for="note">Message</label>
+            <textarea id="note" name="note" rows="4" required placeholder="How can we help?"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Send Message</button>
+        </form>
+      </div>
+
+      <div>
+        <div class="form-card">
+          <h3 style="font-size:1.1rem; margin-bottom:6px;">Visit or reach us</h3>
+          <div class="info-block">
+            <div class="info-icon"><%- icon('map-pin') %></div>
+            <div><b>Address</b><p style="margin:2px 0 0; color:#4C5A70; font-size:0.92rem;"><a href="<%= settings.mapUrl %>" class="contact-link">
+                <%= settings.address %>
+            </a></p></div>
+          </div>
+          <div class="info-block">
+            <div class="info-icon"><%- icon('phone') %></div>
+            <div><b>Phone</b><p style="margin:2px 0 0; color:#4C5A70; font-size:0.92rem;"><a href="tel:<%= settings.phone.replace(/[^+\d]/g, '') %>" class="contact-link">
+                <%= settings.phone %>
+            </a></p></div>
+          </div>
+          <div class="info-block">
+            <div class="info-icon"><%- icon('whatsapp') %></div>
+            <div><b>WhatsApp</b><p style="margin:2px 0 0; color:#4C5A70; font-size:0.92rem;"><a href="https://wa.me/<%= settings.whatsapp.replace(/[^+\d]/g, '').replace('+','') %>" target="_blank" class="contact-link">
+                <%= settings.whatsapp %>
+            </a>
+</p></div>
+          </div>
+          <div class="info-block">
+            <div class="info-icon"><%- icon('mail') %></div>
+            <div><b>Email</b><p style="margin:2px 0 0; color:#4C5A70; font-size:0.92rem;"><a href="mailto:<%= settings.email %>" class="contact-link">
+                <%= settings.email %>
+            </a></p></div>
+          </div>
+          <div class="info-block">
+            <div class="info-icon"><%- icon('clock') %></div>
+            <div><b>Opening Hours</b><p style="margin:2px 0 0; color:#4C5A70; font-size:0.92rem;"><%= settings.openingHours %></p></div>
+          </div>
+        </div>
+        <% if (settings.mapEmbedUrl) { %>
+          <div class="form-card" style="margin-top:24px; padding:0; overflow:hidden;">
+            <iframe src="<%= settings.mapEmbedUrl %>" width="100%" height="240" style="border:0;" loading="lazy"></iframe>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</section-->
 <section class="section">
   <div class="container">
     <div class="section-head">
@@ -74,3 +150,6 @@
     </div>
   </div>
 </section>
+
+<%- include('partials/chat-widget') %>
+
