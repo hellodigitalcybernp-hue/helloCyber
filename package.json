@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "seed": "node seed.js"
   },
-   "engines": {
+  "engines": {
     "node": "22.x"
   },
   "dependencies": {
@@ -21,6 +21,7 @@
     "express-ejs-layouts": "^2.5.1",
     "express-session": "^1.18.0",
     "method-override": "^3.0.0",
+    "mongodb": "4.1",
     "mongoose": "^8.4.1",
     "multer": "^2.0.1"
   },
