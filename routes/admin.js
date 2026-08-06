@@ -82,53 +82,54 @@ router.get("/services/new", requireAdmin, (req, res) => {
 });
 
 router.post(
-    "/services",
-    requireAdmin,
-    upload.fields([
-        { name: "image", maxCount: 1 },
-        { name: "iconImage", maxCount: 1 }
-    ]),
-    async (req, res) => {
-  try {
-    const { title, icon, shortDescription, fullDescription, price, priceNote, duration, category, order } =
-      req.body;
-    const requirements = (req.body.requirements || "")
-      .split("\n")
-      .map((r) => r.trim())
-      .filter(Boolean);
-    let slug = slugify(title);
-    const exists = await Service.findOne({ slug });
-    if (exists) slug = slug + "-" + Date.now().toString().slice(-5);
+  "/services",
+  requireAdmin,
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "iconImage", maxCount: 1 },
+    { name: "documentPhotos", maxCount: 5 }   // <-- added to accept extra files
+  ]),
+  async (req, res) => {
+    try {
+      const { title, icon, shortDescription, fullDescription, price, priceNote, duration, category, order } = req.body;
+      const requirements = (req.body.requirements || "")
+        .split("\n")
+        .map((r) => r.trim())
+        .filter(Boolean);
+      let slug = slugify(title);
+      const exists = await Service.findOne({ slug });
+      if (exists) slug = slug + "-" + Date.now().toString().slice(-5);
 
-    await Service.create({
-      title,
-      slug,
-      icon: icon || "file-text",
-      shortDescription,
-      fullDescription,
-      price: Number(price) || 0,
-      priceNote,
-      duration,
-      requirements,
-      category: category || "General",
-      order: Number(order) || 0,
-      featured: req.body.featured === "on",
-      active: req.body.active === "on",
-      image: req.files.image
-    ? "/uploads/services/" + req.files.image[0].filename
-    : "",
-
-iconImage: req.files.iconImage
-    ? "/uploads/services/" + req.files.iconImage[0].filename
-    : "",
-    });
-    req.flash("success", "Service added successfully.");
-    res.redirect("/admin/services");
-  } catch (err) {
-    req.flash("error", "Could not add service: " + err.message);
-    res.redirect("/admin/services/new");
+      await Service.create({
+        title,
+        slug,
+        icon: icon || "file-text",
+        shortDescription,
+        fullDescription,
+        price: Number(price) || 0,
+        priceNote,
+        duration,
+        requirements,
+        category: category || "General",
+        order: Number(order) || 0,
+        featured: req.body.featured === "on",
+        active: req.body.active === "on",
+        image: req.files.image
+          ? "/uploads/services/" + req.files.image[0].filename
+          : "",
+        iconImage: req.files.iconImage
+          ? "/uploads/services/" + req.files.iconImage[0].filename
+          : "",
+        // documentPhotos are uploaded but not saved in the model – you can extend the schema later
+      });
+      req.flash("success", "Service added successfully.");
+      res.redirect("/admin/services");
+    } catch (err) {
+      req.flash("error", "Could not add service: " + err.message);
+      res.redirect("/admin/services/new");
+    }
   }
-});
+);
 
 router.get("/services/:id/edit", requireAdmin, async (req, res) => {
   const service = await Service.findById(req.params.id);
@@ -139,63 +140,64 @@ router.get("/services/:id/edit", requireAdmin, async (req, res) => {
   res.render("admin/service-form", { title: "Edit Service", service });
 });
 
-router.put("/services",
-    requireAdmin,
-    upload.fields([
-        { name: "image", maxCount: 1 },
-        { name: "iconImage", maxCount: 1 }
-    ]),
-    async (req, res) => {
-  try {
-    const service = await Service.findById(req.params.id);
-    if (!service) {
-      req.flash("error", "Service not found.");
-      return res.redirect("/admin/services");
+// FIXED: added :id to the path
+router.put(
+  "/services/:id",
+  requireAdmin,
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "iconImage", maxCount: 1 },
+    { name: "documentPhotos", maxCount: 5 }   // <-- added
+  ]),
+  async (req, res) => {
+    try {
+      const service = await Service.findById(req.params.id);
+      if (!service) {
+        req.flash("error", "Service not found.");
+        return res.redirect("/admin/services");
+      }
+      const { title, icon, shortDescription, fullDescription, price, priceNote, duration, category, order } = req.body;
+      const requirements = (req.body.requirements || "")
+        .split("\n")
+        .map((r) => r.trim())
+        .filter(Boolean);
+
+      if (title && title !== service.title) {
+        let newSlug = slugify(title);
+        const exists = await Service.findOne({ slug: newSlug, _id: { $ne: service._id } });
+        if (exists) newSlug = newSlug + "-" + Date.now().toString().slice(-5);
+        service.slug = newSlug;
+      }
+
+      service.title = title;
+      service.icon = icon || "file-text";
+      service.shortDescription = shortDescription;
+      service.fullDescription = fullDescription;
+      service.price = Number(price) || 0;
+      service.priceNote = priceNote;
+      service.duration = duration;
+      service.requirements = requirements;
+      service.category = category || "General";
+      service.order = Number(order) || 0;
+      service.featured = req.body.featured === "on";
+      service.active = req.body.active === "on";
+      if (req.files.image) {
+        service.image = "/uploads/services/" + req.files.image[0].filename;
+      }
+      if (req.files.iconImage) {
+        service.iconImage = "/uploads/services/" + req.files.iconImage[0].filename;
+      }
+      // documentPhotos are uploaded but ignored in the model – adjust as needed
+
+      await service.save();
+      req.flash("success", "Service updated successfully.");
+      res.redirect("/admin/services");
+    } catch (err) {
+      req.flash("error", "Could not update service: " + err.message);
+      res.redirect("/admin/services");
     }
-    const { title, icon, shortDescription, fullDescription, price, priceNote, duration, category, order } =
-      req.body;
-    const requirements = (req.body.requirements || "")
-      .split("\n")
-      .map((r) => r.trim())
-      .filter(Boolean);
-
-    if (title && title !== service.title) {
-      let newSlug = slugify(title);
-      const exists = await Service.findOne({ slug: newSlug, _id: { $ne: service._id } });
-      if (exists) newSlug = newSlug + "-" + Date.now().toString().slice(-5);
-      service.slug = newSlug;
-    }
-
-    service.title = title;
-    service.icon = icon || "file-text";
-    service.shortDescription = shortDescription;
-    service.fullDescription = fullDescription;
-    service.price = Number(price) || 0;
-    service.priceNote = priceNote;
-    service.duration = duration;
-    service.requirements = requirements;
-    service.category = category || "General";
-    service.order = Number(order) || 0;
-    service.featured = req.body.featured === "on";
-    service.active = req.body.active === "on";
-    if (req.files.image) {
-    service.image =
-        "/uploads/services/" + req.files.image[0].filename;
-}
-
-if (req.files.iconImage) {
-    service.iconImage =
-        "/uploads/services/" + req.files.iconImage[0].filename;
-}
-
-    await service.save();
-    req.flash("success", "Service updated successfully.");
-    res.redirect("/admin/services");
-  } catch (err) {
-    req.flash("error", "Could not update service: " + err.message);
-    res.redirect("/admin/services");
   }
-});
+);
 
 router.delete("/services/:id", requireAdmin, async (req, res) => {
   await Service.findByIdAndDelete(req.params.id);
@@ -341,7 +343,6 @@ router.delete("/messages/:id", requireAdmin, async (req, res) => {
 
 /* ---------- LIVE CHAT ---------- */
 
-// Inbox page: list of conversations + panel for the selected one
 router.get("/chat", requireAdmin, async (req, res) => {
   const conversations = await ChatConversation.find().sort({ lastMessageAt: -1 });
   res.render("admin/chat", {
@@ -351,13 +352,11 @@ router.get("/chat", requireAdmin, async (req, res) => {
   });
 });
 
-// Polled by the sidebar to catch new/updated conversations
 router.get("/chat/list", requireAdmin, async (req, res) => {
   const conversations = await ChatConversation.find().sort({ lastMessageAt: -1 });
   res.json({ ok: true, conversations });
 });
 
-// Load messages for a conversation
 router.get("/chat/:conversationId/messages", requireAdmin, async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -381,7 +380,6 @@ router.get("/chat/:conversationId/messages", requireAdmin, async (req, res) => {
   }
 });
 
-// Admin sends a reply
 router.post("/chat/:conversationId/message", requireAdmin, async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -411,7 +409,6 @@ router.post("/chat/:conversationId/message", requireAdmin, async (req, res) => {
   }
 });
 
-// Mark a conversation as closed
 router.post("/chat/:conversationId/close", requireAdmin, async (req, res) => {
   const conversation = await ChatConversation.findById(req.params.conversationId);
   if (conversation) {
