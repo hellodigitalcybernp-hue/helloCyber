@@ -1,0 +1,57 @@
+<div class="a-card">
+  <div class="a-card-head">
+    <h3>All Articles (<%= articles.length %>)</h3>
+    <a href="/admin/blog/new" class="a-btn a-btn-accent"><%- icon('plus') %> Write Article</a>
+  </div>
+  <div class="a-table-wrap">
+    <table class="a-table">
+      <thead>
+        <tr>
+          <th>Article</th>
+          <th>Category</th>
+          <th>Author</th>
+          <th>Views</th>
+          <th>Status</th>
+          <th>Published</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (articles.length === 0) { %>
+          <tr><td colspan="7" class="a-empty">No articles yet. <a href="/admin/blog/new">Write your first article</a>.</td></tr>
+        <% } %>
+        <% articles.forEach(function(a){ %>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <% if (a.coverImage) { %>
+                  <img src="<%= a.coverImage %>" class="a-thumb" alt="" />
+                <% } else { %>
+                  <div class="a-thumb" style="display:flex; align-items:center; justify-content:center; color:#6B7385;"><%- icon('file-text') %></div>
+                <% } %>
+                <div>
+                  <div style="font-weight:600;"><%= a.title %></div>
+                  <div style="font-size:0.78rem; color:#6B7385;">/blog/<%= a.slug %></div>
+                </div>
+              </div>
+            </td>
+            <td><%= a.category %></td>
+            <td><%= a.author %></td>
+            <td><%= a.views %></td>
+            <td><span class="pill pill-<%= a.published ? 'active' : 'inactive' %>"><%= a.published ? 'Published' : 'Draft' %></span></td>
+            <td><%= new Date(a.publishedAt).toLocaleDateString() %></td>
+            <td>
+              <div class="a-row-actions">
+                <a href="/blog/<%= a.slug %>" target="_blank" class="a-btn a-btn-ghost a-btn-sm"><%- icon('grid') %> View</a>
+                <a href="/admin/blog/<%= a._id %>/edit" class="a-btn a-btn-ghost a-btn-sm"><%- icon('edit') %> Edit</a>
+                <form action="/admin/blog/<%= a._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Delete this article? This cannot be undone.');">
+                  <button type="submit" class="a-btn a-btn-danger a-btn-sm"><%- icon('trash') %> Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>

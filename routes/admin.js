@@ -4,9 +4,11 @@ const Admin = require("../models/Admin");
 const Service = require("../models/Service");
 const Message = require("../models/Message");
 const Setting = require("../models/Setting");
+const Article = require("../models/Article");
 const ChatConversation = require("../models/ChatConversation");
 const ChatMessage = require("../models/ChatMessage");
 const upload = require("../middleware/upload");
+const uploadBlog = require("../middleware/uploadBlog");
 const { requireAdmin, redirectIfLoggedIn } = require("../middleware/auth");
 
 function slugify(text) {
@@ -50,17 +52,19 @@ router.post("/logout", (req, res) => {
 /* ---------- DASHBOARD ---------- */
 
 router.get("/dashboard", requireAdmin, async (req, res) => {
-  const [totalServices, activeServices, totalMessages, newMessages] = await Promise.all([
+  const [totalServices, activeServices, totalMessages, newMessages, totalArticles, publishedArticles] = await Promise.all([
     Service.countDocuments(),
     Service.countDocuments({ active: true }),
     Message.countDocuments(),
     Message.countDocuments({ status: "new" }),
+    Article.countDocuments(),
+    Article.countDocuments({ published: true }),
   ]);
   const recentMessages = await Message.find().sort({ createdAt: -1 }).limit(5);
   const recentServices = await Service.find().sort({ createdAt: -1 }).limit(5);
   res.render("admin/dashboard", {
     title: "Dashboard",
-    stats: { totalServices, activeServices, totalMessages, newMessages },
+    stats: { totalServices, activeServices, totalMessages, newMessages, totalArticles, publishedArticles },
     recentMessages,
     recentServices,
   });
@@ -77,7 +81,14 @@ router.get("/services/new", requireAdmin, (req, res) => {
   res.render("admin/service-form", { title: "Add Service", service: null });
 });
 
-router.post("/services", requireAdmin, upload.single("image"), async (req, res) => {
+router.post(
+    "/services",
+    requireAdmin,
+    upload.fields([
+        { name: "image", maxCount: 1 },
+        { name: "iconImage", maxCount: 1 }
+    ]),
+    async (req, res) => {
   try {
     const { title, icon, shortDescription, fullDescription, price, priceNote, duration, category, order } =
       req.body;
@@ -103,7 +114,13 @@ router.post("/services", requireAdmin, upload.single("image"), async (req, res) 
       order: Number(order) || 0,
       featured: req.body.featured === "on",
       active: req.body.active === "on",
-      image: req.file ? "/uploads/services/" + req.file.filename : "",
+      image: req.files.image
+    ? "/uploads/services/" + req.files.image[0].filename
+    : "",
+
+iconImage: req.files.iconImage
+    ? "/uploads/services/" + req.files.iconImage[0].filename
+    : "",
     });
     req.flash("success", "Service added successfully.");
     res.redirect("/admin/services");
@@ -122,7 +139,13 @@ router.get("/services/:id/edit", requireAdmin, async (req, res) => {
   res.render("admin/service-form", { title: "Edit Service", service });
 });
 
-router.put("/services/:id", requireAdmin, upload.single("image"), async (req, res) => {
+router.put("/services",
+    requireAdmin,
+    upload.fields([
+        { name: "image", maxCount: 1 },
+        { name: "iconImage", maxCount: 1 }
+    ]),
+    async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
     if (!service) {
@@ -155,7 +178,15 @@ router.put("/services/:id", requireAdmin, upload.single("image"), async (req, re
     service.order = Number(order) || 0;
     service.featured = req.body.featured === "on";
     service.active = req.body.active === "on";
-    if (req.file) service.image = "/uploads/services/" + req.file.filename;
+    if (req.files.image) {
+    service.image =
+        "/uploads/services/" + req.files.image[0].filename;
+}
+
+if (req.files.iconImage) {
+    service.iconImage =
+        "/uploads/services/" + req.files.iconImage[0].filename;
+}
 
     await service.save();
     req.flash("success", "Service updated successfully.");
@@ -170,6 +201,123 @@ router.delete("/services/:id", requireAdmin, async (req, res) => {
   await Service.findByIdAndDelete(req.params.id);
   req.flash("success", "Service deleted.");
   res.redirect("/admin/services");
+});
+
+/* ---------- BLOG / ARTICLES CRUD ---------- */
+
+router.get("/blog", requireAdmin, async (req, res) => {
+  const articles = await Article.find().sort({ createdAt: -1 });
+  res.render("admin/articles", { title: "Manage Blog", articles });
+});
+
+router.get("/blog/new", requireAdmin, async (req, res) => {
+  const services = await Service.find({ active: true }).sort({ title: 1 });
+  res.render("admin/article-form", { title: "Write Article", article: null, services });
+});
+
+router.post("/blog", requireAdmin, uploadBlog.single("coverImage"), async (req, res) => {
+  try {
+    const { title, excerpt, content, category, author, metaTitle, metaDescription, relatedService } = req.body;
+    const tags = (req.body.tags || "")
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const faqQuestions = [].concat(req.body.faqQuestion || []);
+    const faqAnswers = [].concat(req.body.faqAnswer || []);
+    const faqs = faqQuestions
+      .map((q, i) => ({ question: (q || "").trim(), answer: (faqAnswers[i] || "").trim() }))
+      .filter((f) => f.question && f.answer);
+
+    let slug = slugify(title);
+    const exists = await Article.findOne({ slug });
+    if (exists) slug = slug + "-" + Date.now().toString().slice(-5);
+
+    await Article.create({
+      title,
+      slug,
+      excerpt,
+      content,
+      category: category || "Guides",
+      tags,
+      author: author || "HelloDigitalCyber Team",
+      metaTitle,
+      metaDescription,
+      faqs,
+      relatedService: relatedService || undefined,
+      published: req.body.published === "on",
+      publishedAt: req.body.publishedAt ? new Date(req.body.publishedAt) : new Date(),
+      coverImage: req.file ? "/uploads/blog/" + req.file.filename : "",
+    });
+    req.flash("success", "Article published successfully.");
+    res.redirect("/admin/blog");
+  } catch (err) {
+    req.flash("error", "Could not save article: " + err.message);
+    res.redirect("/admin/blog/new");
+  }
+});
+
+router.get("/blog/:id/edit", requireAdmin, async (req, res) => {
+  const article = await Article.findById(req.params.id);
+  if (!article) {
+    req.flash("error", "Article not found.");
+    return res.redirect("/admin/blog");
+  }
+  const services = await Service.find({ active: true }).sort({ title: 1 });
+  res.render("admin/article-form", { title: "Edit Article", article, services });
+});
+
+router.put("/blog/:id", requireAdmin, uploadBlog.single("coverImage"), async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) {
+      req.flash("error", "Article not found.");
+      return res.redirect("/admin/blog");
+    }
+    const { title, excerpt, content, category, author, metaTitle, metaDescription, relatedService } = req.body;
+    const tags = (req.body.tags || "")
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const faqQuestions = [].concat(req.body.faqQuestion || []);
+    const faqAnswers = [].concat(req.body.faqAnswer || []);
+    const faqs = faqQuestions
+      .map((q, i) => ({ question: (q || "").trim(), answer: (faqAnswers[i] || "").trim() }))
+      .filter((f) => f.question && f.answer);
+
+    if (title && title !== article.title) {
+      let newSlug = slugify(title);
+      const exists = await Article.findOne({ slug: newSlug, _id: { $ne: article._id } });
+      if (exists) newSlug = newSlug + "-" + Date.now().toString().slice(-5);
+      article.slug = newSlug;
+    }
+
+    article.title = title;
+    article.excerpt = excerpt;
+    article.content = content;
+    article.category = category || "Guides";
+    article.tags = tags;
+    article.author = author || "HelloDigitalCyber Team";
+    article.metaTitle = metaTitle;
+    article.metaDescription = metaDescription;
+    article.faqs = faqs;
+    article.relatedService = relatedService || undefined;
+    article.published = req.body.published === "on";
+    if (req.body.publishedAt) article.publishedAt = new Date(req.body.publishedAt);
+    if (req.file) article.coverImage = "/uploads/blog/" + req.file.filename;
+
+    await article.save();
+    req.flash("success", "Article updated successfully.");
+    res.redirect("/admin/blog");
+  } catch (err) {
+    req.flash("error", "Could not update article: " + err.message);
+    res.redirect("/admin/blog");
+  }
+});
+
+router.delete("/blog/:id", requireAdmin, async (req, res) => {
+  await Article.findByIdAndDelete(req.params.id);
+  req.flash("success", "Article deleted.");
+  res.redirect("/admin/blog");
 });
 
 /* ---------- MESSAGES / APPLICATIONS ---------- */

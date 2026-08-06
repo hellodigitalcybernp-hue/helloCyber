@@ -1420,6 +1420,20 @@
             border: 0 !important;
         }
 
+        .article-image{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+    border-radius:12px;
+    margin-bottom:16px;
+    display:block;
+}
+
+.service-card:hover .article-image{
+    transform:scale(1.03);
+    transition:.3s ease;
+}
+
         /* small touch of polish for smooth scrolling on iOS */
         .smooth-scroll {
             -webkit-overflow-scrolling: touch;

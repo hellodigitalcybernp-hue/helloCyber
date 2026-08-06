@@ -1,0 +1,303 @@
+<div class="a-card">
+  <form
+    action="<%= article ? '/admin/blog/' + article._id + '?_method=PUT' : '/admin/blog' %>"
+    method="POST"
+    enctype="multipart/form-data"
+  >
+    <div class="a-form-grid">
+      <div class="a-form-group full">
+        <label for="title">Article Title</label>
+        <input type="text" id="title" name="title" required value="<%= article ? article.title : '' %>" placeholder="e.g. How to Fill the Nepal Passport Form in 2026" />
+      </div>
+
+      <div class="a-form-group">
+        <label for="category">Category</label>
+        <input type="text" id="category" name="category" list="categoryList" value="<%= article ? article.category : 'Guides' %>" />
+        <datalist id="categoryList">
+          <option value="Passport">
+          <option value="NID">
+          <option value="Citizenship">
+          <option value="Driving License">
+          <option value="Guides">
+        </datalist>
+      </div>
+      <div class="a-form-group">
+        <label for="author">Author</label>
+        <input type="text" id="author" name="author" value="<%= article ? article.author : 'HelloDigitalCyber Team' %>" />
+      </div>
+
+      <div class="a-form-group full">
+        <label for="excerpt">Excerpt (short summary for cards + fallback meta description)</label>
+        <textarea id="excerpt" name="excerpt" rows="2" required><%= article ? article.excerpt : '' %></textarea>
+      </div>
+
+      <div class="a-form-group full">
+  <label for="content">
+    Article Content (HTML — headings, paragraphs, lists all supported)
+  </label>
+
+  <div style="display:flex; gap:8px; margin-bottom:8px;">
+    <button type="button" id="autoFormatBtn" class="a-btn a-btn-ghost a-btn-sm">
+      <%- icon('wand') %> Auto-format to HTML
+    </button>
+    <span id="formatStatus" style="font-size:0.78rem; color:#6B7385; align-self:center;"></span>
+  </div>
+
+  <textarea id="content" name="content" rows="16" required
+    placeholder="Paste or type your article here. Plain text pastes are auto-converted to HTML — headings, numbered steps, and bullet lists are detected automatically."
+  ><%= article ? article.content : '' %></textarea>
+
+  <div class="a-help">
+    Paste plain text and it's auto-converted to HTML. Short standalone lines (or lines starting with "Step 1:", "Step 2:", etc.) become
+    <code>&lt;h2&gt;</code> headings, lines starting with "-" or "*" become bullet lists, numbered lines ("1.", "2.") become
+    ordered lists, and everything else becomes <code>&lt;p&gt;</code> paragraphs. Already-written HTML is left untouched.
+  </div>
+</div>
+
+<script>
+(function () {
+  var textarea = document.getElementById('content');
+  var autoFormatBtn = document.getElementById('autoFormatBtn');
+  var statusEl = document.getElementById('formatStatus');
+
+  function looksLikeHTML(str) {
+    return /<\/?[a-z][\s\S]*>/i.test(str);
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function isHeadingLine(line) {
+    // "Step 1: ..." / "Step 2 - ..." style headings
+    if (/^step\s*\d+/i.test(line)) return true;
+    // Short line, no ending punctuation, likely a heading (e.g. "Required Documents")
+    if (line.length <= 70 && !/[.!?]$/.test(line) && line.split(' ').length <= 10) return true;
+    // Line ending in a colon, e.g. "What you'll need:"
+    if (/:$/.test(line) && line.length <= 80) return true;
+    return false;
+  }
+
+  function isBulletLine(line) {
+    return /^[-*•]\s+/.test(line);
+  }
+
+  function isNumberedLine(line) {
+    return /^\d+[.)]\s+/.test(line);
+  }
+
+  function stripListMarker(line) {
+    return line.replace(/^[-*•]\s+/, '').replace(/^\d+[.)]\s+/, '');
+  }
+
+  function autoFormatToHTML(text) {
+    var lines = text.replace(/\r\n/g, '\n').split('\n');
+    var html = [];
+    var i = 0;
+
+    while (i < lines.length) {
+      var line = lines[i].trim();
+
+      if (!line) { i++; continue; }
+
+      // Bulleted list block
+      if (isBulletLine(line)) {
+        var items = [];
+        while (i < lines.length && isBulletLine(lines[i].trim())) {
+          items.push('  <li>' + escapeHtml(stripListMarker(lines[i].trim())) + '</li>');
+          i++;
+        }
+        html.push('<ul>\n' + items.join('\n') + '\n</ul>');
+        continue;
+      }
+
+      // Numbered list block
+      if (isNumberedLine(line)) {
+        var oitems = [];
+        while (i < lines.length && isNumberedLine(lines[i].trim())) {
+          oitems.push('  <li>' + escapeHtml(stripListMarker(lines[i].trim())) + '</li>');
+          i++;
+        }
+        html.push('<ol>\n' + oitems.join('\n') + '\n</ol>');
+        continue;
+      }
+
+      // Heading line
+      if (isHeadingLine(line)) {
+        html.push('<h2>' + escapeHtml(line.replace(/:$/, '')) + '</h2>');
+        i++;
+        continue;
+      }
+
+      // Otherwise, gather into a paragraph until a blank line or a new block starts
+      var para = [line];
+      i++;
+      while (
+        i < lines.length &&
+        lines[i].trim() &&
+        !isBulletLine(lines[i].trim()) &&
+        !isNumberedLine(lines[i].trim()) &&
+        !isHeadingLine(lines[i].trim())
+      ) {
+        para.push(lines[i].trim());
+        i++;
+      }
+      html.push('<p>' + escapeHtml(para.join(' ')) + '</p>');
+    }
+
+    return html.join('\n\n');
+  }
+
+  function runAutoFormat(showStatus) {
+    var current = textarea.value;
+    if (!current.trim()) return;
+
+    if (looksLikeHTML(current)) {
+      if (showStatus) {
+        statusEl.textContent = 'Already contains HTML — left as-is.';
+        setTimeout(function () { statusEl.textContent = ''; }, 2500);
+      }
+      return;
+    }
+
+    textarea.value = autoFormatToHTML(current);
+    if (showStatus) {
+      statusEl.textContent = 'Converted to HTML ✓';
+      setTimeout(function () { statusEl.textContent = ''; }, 2500);
+    }
+  }
+
+  // Auto-detect on paste: if pasted content is plain text, convert shortly after paste completes
+  textarea.addEventListener('paste', function () {
+    setTimeout(function () { runAutoFormat(true); }, 30);
+  });
+
+  // Manual trigger for content typed directly (not pasted)
+  autoFormatBtn.addEventListener('click', function () {
+    runAutoFormat(true);
+  });
+})();
+</script>
+
+      <div class="a-form-group full">
+        <label for="tags">Tags (comma separated — also used for keywords)</label>
+        <input type="text" id="tags" name="tags" value="<%= article && article.tags ? article.tags.join(', ') : '' %>" placeholder="passport form nepal, passport fill up, nepal passport 2026" />
+      </div>
+
+      <div class="a-form-group full">
+        <label for="requirements">Required Documents (one per line)</label>
+        <textarea id="requirements" name="requirements" rows="4" placeholder="Citizenship certificate&#10;2 passport-size photos&#10;Filled application form"><%= article && article.requirements ? article.requirements.join('\n') : '' %></textarea>
+        <div class="a-help">Shown as a checklist on the article page — e.g. what documents the reader needs to bring.</div>
+      </div>
+
+      <div class="a-form-group">
+        <label for="relatedService">Related Service (optional)</label>
+        <select id="relatedService" name="relatedService">
+          <option value="">— None —</option>
+          <% services.forEach(function(s){ %>
+            <option value="<%= s._id %>" <%= (article && article.relatedService && String(article.relatedService._id || article.relatedService) === String(s._id)) ? 'selected' : '' %>><%= s.title %></option>
+          <% }) %>
+        </select>
+        <div class="a-help">Shows a "Need help with this?" box linking to that service.</div>
+      </div>
+      <div class="a-form-group">
+        <label for="publishedAt">Publish Date</label>
+        <input type="datetime-local" id="publishedAt" name="publishedAt" value="<%= article && article.publishedAt ? new Date(article.publishedAt).toISOString().slice(0,16) : '' %>" />
+      </div>
+
+      <div class="a-form-group full">
+        <label for="metaTitle">SEO Title Override (optional)</label>
+        <input type="text" id="metaTitle" name="metaTitle" value="<%= article ? article.metaTitle : '' %>" placeholder="Leave blank to use the article title" />
+      </div>
+      <div class="a-form-group full">
+        <label for="metaDescription">SEO Meta Description Override (optional, ~155 characters)</label>
+        <textarea id="metaDescription" name="metaDescription" rows="2"><%= article ? article.metaDescription : '' %></textarea>
+      </div>
+
+      <div class="a-form-group full">
+        <label for="coverImage">Cover Image (optional)</label>
+        <input type="file" id="coverImage" name="coverImage" accept="image/*" />
+        <% if (article && article.coverImage) { %>
+          <img src="<%= article.coverImage %>" class="a-thumb" style="width:70px; height:70px; margin-top:10px;" alt="" />
+        <% } %>
+      </div>
+
+      <div class="a-form-group full">
+        <label for="documentPhotos">Document / Sample Photos (optional, up to 6)</label>
+        <input type="file" id="documentPhotos" name="documentPhotos" accept="image/*" multiple />
+        <div class="a-help">Add reference photos of the actual form or documents — filled examples, sample stamps, photo requirements, etc. These show in a gallery on the article page.</div>
+
+        <% if (article && article.documentPhotos && article.documentPhotos.length) { %>
+          <div style="display:flex; flex-wrap:wrap; gap:14px; margin-top:12px;">
+            <% article.documentPhotos.forEach(function(p, i){ %>
+              <div style="text-align:center;">
+                <img src="<%= p %>" class="a-thumb" style="width:90px; height:90px;" alt="" />
+                <label style="display:flex; align-items:center; gap:4px; justify-content:center; margin-top:4px; font-size:0.75rem; color:#6B7385;">
+                  <input type="checkbox" name="removePhotos" value="<%= p %>" style="width:auto;" /> Remove
+                </label>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="a-form-group">
+        <div class="a-checkbox-row">
+          <input type="checkbox" id="published" name="published" <%= (!article || article.published) ? 'checked' : '' %> />
+          <label for="published" style="margin:0;">Published (visible on website)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="a-form-group full" style="margin-top:10px;">
+      <label>Frequently Asked Questions <span style="font-weight:400; color:#6B7385;">(shown on the article + adds FAQ rich results in Google)</span></label>
+      <div id="faqRows">
+        <% var faqs = (article && article.faqs && article.faqs.length) ? article.faqs : [{question:'', answer:''}]; %>
+        <% faqs.forEach(function(f){ %>
+          <div class="faq-row" style="display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;">
+            <div style="flex:1;">
+              <input type="text" name="faqQuestion" placeholder="Question" value="<%= f.question %>" style="width:100%; margin-bottom:6px;" />
+              <textarea name="faqAnswer" placeholder="Answer" rows="2" style="width:100%;"><%= f.answer %></textarea>
+            </div>
+            <button type="button" class="a-btn a-btn-ghost a-btn-sm faq-remove" title="Remove"><%- icon('trash') %></button>
+          </div>
+        <% }) %>
+      </div>
+      <button type="button" id="faqAdd" class="a-btn a-btn-ghost a-btn-sm"><%- icon('plus') %> Add FAQ</button>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button type="submit" class="a-btn a-btn-primary"><%- icon('check') %> <%= article ? 'Save Changes' : 'Publish Article' %></button>
+      <a href="/admin/blog" class="a-btn a-btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.getElementById('faqAdd').addEventListener('click', function () {
+    var wrap = document.createElement('div');
+    wrap.className = 'faq-row';
+    wrap.style.cssText = 'display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;';
+    wrap.innerHTML =
+      '<div style="flex:1;">' +
+        '<input type="text" name="faqQuestion" placeholder="Question" style="width:100%; margin-bottom:6px;" />' +
+        '<textarea name="faqAnswer" placeholder="Answer" rows="2" style="width:100%;"></textarea>' +
+      '</div>' +
+      '<button type="button" class="a-btn a-btn-ghost a-btn-sm faq-remove" title="Remove"><%- icon("trash") %></button>';
+    document.getElementById('faqRows').appendChild(wrap);
+  });
+
+  document.getElementById('faqRows').addEventListener('click', function (e) {
+    var btn = e.target.closest('.faq-remove');
+    if (!btn) return;
+    var rows = document.querySelectorAll('.faq-row');
+    if (rows.length > 1) {
+      btn.closest('.faq-row').remove();
+    } else {
+      btn.closest('.faq-row').querySelectorAll('input, textarea').forEach(function (el) { el.value = ''; });
+    }
+  });
+</script>

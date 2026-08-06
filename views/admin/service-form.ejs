@@ -20,15 +20,44 @@
         </datalist>
       </div>
 
-      <div class="a-form-group">
-        <label for="icon">Icon</label>
-        <select id="icon" name="icon">
-          <% iconList().forEach(function(i){ %>
-            <option value="<%= i %>" <%= (service && service.icon === i) ? 'selected' : '' %>><%= i %></option>
-          <% }) %>
-        </select>
-        <div class="a-help">Shown as the service's icon on the website.</div>
-      </div>
+     <div class="a-form-group">
+  <label for="icon">Choose Icon</label>
+  <select id="icon" name="icon">
+    <option value="">-- Upload Custom Icon --</option>
+    <% iconList().forEach(function(i){ %>
+      <option value="<%= i %>" <%= (service && service.icon === i) ? 'selected' : '' %>>
+        <%= i %>
+      </option>
+    <% }) %>
+  </select>
+
+  <div class="a-help">
+    Select an icon from the list or upload your own image below.
+  </div>
+</div>
+
+<div class="a-form-group">
+  <label for="iconImage">Custom Icon Image</label>
+  <input
+    type="file"
+    id="iconImage"
+    name="iconImage"
+    accept=".png,.jpg,.jpeg,.svg,.webp"
+  />
+
+  <% if(service && service.iconImage){ %>
+    <div style="margin-top:10px;">
+      <img
+        src="<%= service.iconImage %>"
+        style="width:60px;height:60px;object-fit:contain;border:1px solid #ddd;padding:5px;border-radius:8px;"
+      >
+    </div>
+     <% } %>
+
+    <div class="a-help">
+    Recommended size: 64×64 or SVG with transparent background.
+     </div>
+    </div>
       <div class="a-form-group">
         <label for="duration">Estimated Duration</label>
         <input type="text" id="duration" name="duration" value="<%= service ? service.duration : '' %>" placeholder="e.g. Same day / 1-2 working days" />

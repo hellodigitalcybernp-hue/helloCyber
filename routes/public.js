@@ -3,6 +3,7 @@ const router = express.Router();
 const Service = require("../models/Service");
 const Message = require("../models/Message");
 const Setting = require("../models/Setting");
+const Article = require("../models/Article");
 
 // helper to always have settings available
 async function getSettings() {
@@ -86,6 +87,76 @@ router.post("/services/:slug/apply", async (req, res) => {
   res.redirect(service ? "/services/" + service.slug : "/services");
 });
 
+// ---------- Blog: listing (search + category filter + pagination) ----------
+router.get("/blog", async (req, res) => {
+  const settings = await getSettings();
+  const category = req.query.category || "";
+  const q = (req.query.q || "").trim();
+  const page = Math.max(parseInt(req.query.page) || 1, 1);
+  const perPage = 9;
+
+  const filter = { published: true };
+  if (category) filter.category = category;
+  if (q) filter.$text = { $search: q };
+
+  const [articles, total, categories] = await Promise.all([
+    Article.find(filter)
+      .sort(q ? { score: { $meta: "textScore" } } : { publishedAt: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage),
+    Article.countDocuments(filter),
+    Article.distinct("category", { published: true }),
+  ]);
+
+  const totalPages = Math.max(Math.ceil(total / perPage), 1);
+  const metaDescription = category
+    ? `${category} guides and articles from ${settings.siteName} — step-by-step help with Nepal government forms and documents.`
+    : `Step-by-step guides for Nepal passport forms, NID correction, citizenship, driving licence and other government paperwork, from ${settings.siteName}.`;
+
+  res.render("blog", {
+    title: (category ? category + " Articles" : "Blog & Guides") + " - " + settings.siteName,
+    metaDescription,
+    metaKeywords: settings.metaKeywords,
+    settings,
+    articles,
+    categories,
+    activeCategory: category,
+    q,
+    page,
+    totalPages,
+  });
+});
+
+
+// ---------- Blog: article detail ----------
+router.get("/blog/:slug", async (req, res) => {
+  const settings = await getSettings();
+  const article = await Article.findOne({ slug: req.params.slug, published: true }).populate("relatedService");
+  if (!article) {
+    return res.status(404).render("404", { title: "Not found", settings });
+  }
+
+  Article.updateOne({ _id: article._id }, { $inc: { views: 1 } }).catch(() => {});
+
+  const related = await Article.find({
+    published: true,
+    category: article.category,
+    _id: { $ne: article._id },
+  })
+    .sort({ publishedAt: -1 })
+    .limit(3);
+
+  res.render("blog-detail", {
+    title: (article.metaTitle || article.title) + " - " + settings.siteName,
+    metaDescription: (article.metaDescription || article.excerpt || settings.metaDescription || "").slice(0, 160),
+    metaKeywords: `${(article.tags || []).join(", ")}, ${settings.metaKeywords || ""}`,
+    ogImage: article.coverImage || settings.ogImage,
+    settings,
+    article,
+    related,
+  });
+});
+
 // About
 router.get("/about", async (req, res) => {
   const settings = await getSettings();
@@ -146,10 +217,12 @@ router.get("/sitemap.xml", async (req, res) => {
   const settings = await getSettings();
   const base = (settings.siteUrl || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
   const services = await Service.find({ active: true }).select("slug updatedAt");
+  const articles = await Article.find({ published: true }).select("slug updatedAt");
 
   const staticUrls = [
     { loc: "/", priority: "1.0" },
     { loc: "/services", priority: "0.9" },
+    { loc: "/blog", priority: "0.8" },
     { loc: "/about", priority: "0.6" },
     { loc: "/contact", priority: "0.6" },
   ];
@@ -161,6 +234,10 @@ router.get("/sitemap.xml", async (req, res) => {
   services.forEach((s) => {
     const lastmod = s.updatedAt ? new Date(s.updatedAt).toISOString().split("T")[0] : "";
     xml += `  <url><loc>${base}/services/${s.slug}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}<priority>0.8</priority></url>\n`;
+  });
+  articles.forEach((a) => {
+    const lastmod = a.updatedAt ? new Date(a.updatedAt).toISOString().split("T")[0] : "";
+    xml += `  <url><loc>${base}/blog/${a.slug}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}<priority>0.6</priority></url>\n`;
   });
   xml += "</urlset>";
 
