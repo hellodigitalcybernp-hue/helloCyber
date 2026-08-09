@@ -128,6 +128,7 @@ router.get("/blog", async (req, res) => {
 });
 
 
+
 // ---------- Blog: article detail ----------
 router.get("/blog/:slug", async (req, res) => {
   const settings = await getSettings();
@@ -156,6 +157,7 @@ router.get("/blog/:slug", async (req, res) => {
     related,
   });
 });
+
 
 // About
 router.get("/about", async (req, res) => {
